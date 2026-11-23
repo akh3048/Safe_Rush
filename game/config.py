@@ -163,6 +163,7 @@ DEFAULT_SETTINGS = {
     "sfx_vol": "80",
     "show_time": "1",
     "color_lock": "0",
+    "tetris": "1",                 # 본게임에 퍼펙트 클리어(테트리스)를 넣을지 (연습은 항상 가능)
     "color_choice": "orange",
     "custom_hex": "#000000",
     "initials": "",

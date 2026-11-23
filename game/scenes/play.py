@@ -64,7 +64,7 @@ class PlayScene(Scene):
         self.cap = None if self.unlimited else start + config.BAR_EXTRA
         self.remaining = None if self.unlimited else start
 
-        pool = missions.available_keys()
+        pool = self._pool()
         self.challenge = diff == "challenge" and mode == "run"      # 숨은 챌린지: 미니게임 전부, 설명 없이 연속 진행
         if mode == "practice":
             self.queue = [mission_key]
@@ -132,10 +132,17 @@ class PlayScene(Scene):
     def skips_left(self):
         return config.SKIPS_PER_RUN - self.skips_used if (self.mode == "run" and not self.challenge) else 0
 
+    def _pool(self):
+        """본게임에 나올 수 있는 미니게임 키. 설정에서 테트리스를 끄면 8가지가 돼요. (연습은 이 목록을 쓰지 않아요)"""
+        keys = missions.available_keys()
+        if self.mode == "run" and self.app.setting("tetris") != "1":
+            keys = [k for k in keys if k != "tetris"]
+        return keys
+
     def _replacement(self):
         current = self.queue[self.index]
         used = set(self.queue[: self.index + 1])
-        pool = missions.available_keys()
+        pool = self._pool()
         choices = [k for k in pool if k not in used] or [k for k in pool if k != current] or [current]
         return self.rng.choice(choices)
 

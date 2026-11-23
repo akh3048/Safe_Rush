@@ -7,7 +7,8 @@ from ..scene import Scene
 from ..ui import draw_round, draw_round_alpha
 from ..utils import parse_hex, to_hex, shade
 
-ROWS = ("bgm", "sfx", "time", "lock", "color", "back")
+ROWS = ("bgm", "sfx", "time", "lock", "tetris", "color", "back")
+TOGGLES = {"time": "show_time", "lock": "color_lock", "tetris": "tetris"}
 TRACK_X, TRACK_W = 560, 420
 
 
@@ -17,7 +18,7 @@ class SettingsScene(Scene):
         self.focus = 0
         self.drag = None
         self.hex_buf = app.setting("custom_hex")
-        self.y = {"bgm": 175, "sfx": 250, "time": 325, "lock": 400, "color": 495, "back": 655}
+        self.y = {"bgm": 160, "sfx": 228, "time": 296, "lock": 364, "tetris": 432, "color": 530, "back": 675}
         self.swatches = []       # (키, 이름, 사각형)
         keys = [(k, n) for k, n, _ in config.COLOR_CHOICES] + [("custom", "기타")]
         for i, (k, n) in enumerate(keys):
@@ -63,14 +64,14 @@ class SettingsScene(Scene):
                     self.focus, self.drag = i, row
                     self.set_vol(row, (e.pos[0] - TRACK_X) / TRACK_W * 100)
                     return
-            for i, row in enumerate(("time", "lock")):
+            for i, row in enumerate(("time", "lock", "tetris")):
                 if pygame.Rect(TRACK_X, self.y[row] - 30, 150, 60).collidepoint(e.pos):
                     self.focus = 2 + i
-                    self.toggle("show_time" if row == "time" else "color_lock")
+                    self.toggle(TOGGLES[row])
                     return
             for k, _, r in self.swatches:
                 if r.collidepoint(e.pos):
-                    self.focus = 4
+                    self.focus = ROWS.index("color")
                     self.choose_color(k)
                     return
             if self.back_rect.collidepoint(e.pos):
@@ -96,9 +97,15 @@ class SettingsScene(Scene):
                 self.hex_buf = self.hex_buf[:-1] or "#"
                 self._commit_hex()
                 return
+            if e.key == pygame.K_DELETE:
+                self.hex_buf = "#"
+                return
             ch = e.unicode
-            if ch and ch in "0123456789abcdefABCDEF#" and len(self.hex_buf) < 7:
-                self.hex_buf = (self.hex_buf + ch.upper()) if self.hex_buf.startswith("#") or ch == "#" else "#" + self.hex_buf + ch.upper()
+            if ch and ch in "0123456789abcdefABCDEF#":
+                if ch == "#" or len(self.hex_buf) >= 7:      # '#' 을 치거나 이미 꽉 찼으면 새로 입력해요
+                    self.hex_buf = "#"
+                if ch != "#":
+                    self.hex_buf += ch.upper()
                 self._commit_hex()
                 return
         if e.key == pygame.K_UP:
@@ -112,18 +119,16 @@ class SettingsScene(Scene):
             if row in ("bgm", "sfx"):
                 self.set_vol(row, self.vol(row) + 5 * d)
                 app.audio.play("tick")
-            elif row in ("time", "lock"):
-                self.toggle("show_time" if row == "time" else "color_lock")
+            elif row in TOGGLES:
+                self.toggle(TOGGLES[row])
             elif row == "color":
                 keys = [k for k, _, _ in self.swatches]
                 cur = app.setting("color_choice")
                 i = keys.index(cur) if cur in keys else 0
                 self.choose_color(keys[(i + d) % len(keys)])
         elif e.key in (pygame.K_RETURN, pygame.K_KP_ENTER, pygame.K_SPACE):
-            if row == "time":
-                self.toggle("show_time")
-            elif row == "lock":
-                self.toggle("color_lock")
+            if row in TOGGLES:
+                self.toggle(TOGGLES[row])
             elif row == "back":
                 self.close()
 
@@ -140,12 +145,12 @@ class SettingsScene(Scene):
         surf.fill(bg)
         app.text(surf, "설정", 64, fg, (640, 82))
 
-        labels = {"bgm": "배경음 볼륨", "sfx": "효과음 볼륨", "time": "남은 시간 숫자 표시", "lock": "화면 색상 고정", "color": ""}
-        for i, row in enumerate(ROWS[:5]):
+        labels = {"bgm": "배경음 볼륨", "sfx": "효과음 볼륨", "time": "남은 시간 숫자 표시", "lock": "화면 색상 고정", "tetris": "퍼펙트 클리어(테트리스)", "color": ""}
+        for i, row in enumerate(ROWS[:6]):
             y = self.y[row]
             sel = (i == self.focus)
             if sel:
-                draw_round_alpha(surf, fg, 28, (150, y - 44, 980, 88 if row != "color" else 100), 30)
+                draw_round_alpha(surf, fg, 28, (150, y - 32, 980, 64) if row != "color" else (150, y - 50, 980, 100), 30)
             if labels[row]:
                 app.text(surf, labels[row], 34, fg, (200, y), anchor="midleft")
         # 볼륨 슬라이더
@@ -159,13 +164,16 @@ class SettingsScene(Scene):
             pygame.draw.circle(surf, config.YELLOW if self.drag == row else fg, (tr.x + int(tr.w * v / 100), tr.centery), 17)
             app.text(surf, "%d%%" % v, 32, fg, (TRACK_X + TRACK_W + 80, self.y[row]), weight="bold")
         # 토글
-        for row, key in (("time", "show_time"), ("lock", "color_lock")):
+        for row, key in (("time", "show_time"), ("lock", "color_lock"), ("tetris", "tetris")):
             on = app.setting(key) == "1"
             r = pygame.Rect(TRACK_X, self.y[row] - 28, 150, 56)
             draw_round(surf, config.YELLOW if on else shade(bg, 0.7), r, 28)
             app.text(surf, "켜짐" if on else "꺼짐", 28, config.INK if on else shade(fg, 0.85), r.center)
-        hint = "켜면 미니게임마다 배경색이 바뀌지 않고, 고른 색으로 고정돼요" if app.setting("color_lock") != "1" else "선택한 색이 모든 화면에 적용돼요"
+        hint = "켜면 배경색이 고른 색으로 고정돼요" if app.setting("color_lock") != "1" else "선택한 색이 모든 화면에 적용돼요"
         app.text(surf, hint, 22, shade(fg, 0.9), (TRACK_X + 170, self.y["lock"]), anchor="midleft", weight="bold")
+        t_on = app.setting("tetris") == "1"
+        app.text(surf, "미니게임 9가지 (본게임에 포함)" if t_on else "끄면 본게임은 8가지 · 연습은 그대로", 22, shade(fg, 0.9),
+                 (TRACK_X + 170, self.y["tetris"]), anchor="midleft", weight="bold")
         # 색 고르기
         cur = app.setting("color_choice")
         locked = app.setting("color_lock") == "1"
@@ -180,8 +188,9 @@ class SettingsScene(Scene):
         if cur == "custom":
             ok = parse_hex(self.hex_buf) is not None
             app.text(surf, "기타 색상 입력:  %s" % self.hex_buf, 24, fg if ok else config.YELLOW, (640, self.y["color"] + 78), weight="bold")
-            if not ok:
-                app.text(surf, "#RRGGBB 형식으로 입력하세요", 20, config.YELLOW, (640, self.y["color"] + 104), weight="bold")
+            tip = "#RRGGBB 6자리를 입력하세요 (영문 입력 상태 · 새로 치면 처음부터, Backspace 지우기)" if not ok else \
+                "새 값을 바로 입력하면 처음부터 다시 쓸 수 있어요  (예: #FF8800)"
+            app.text(surf, tip, 20, config.YELLOW if not ok else shade(fg, 0.9), (640, self.y["color"] + 104), weight="bold")
         # 돌아가기
         sel = ROWS[self.focus] == "back"
         r = self.back_rect.inflate(16, 8) if sel else self.back_rect
