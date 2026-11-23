@@ -5,13 +5,21 @@
 
 ## 실행 방법
 
-### 1) 소스로 실행 (Python 3.10 이상)
+### 1) exe로 바로 실행 (Windows, 가장 쉬움)
+Python 설치가 필요 없어요.
+1. 이 저장소 오른쪽의 **[Releases](../../releases)** 에서 `Safe_Rush_v1.0.zip` 을 내려받습니다.
+2. zip 을 **압축 풀기** 합니다. (압축 파일 안에서 바로 실행하면 안 돼요)
+3. 풀린 폴더 안의 **`safe_rush.exe`** 를 실행합니다. 폴더 안의 다른 파일(`_internal` 등)은 지우거나 옮기지 마세요.
+
+> Windows 에서 "PC 보호" 경고가 뜨면 **추가 정보 → 실행** 을 눌러 주세요. (서명 없는 개인 제작 프로그램이라 나오는 경고예요.)
+
+### 2) 소스로 실행 (Python 3.10 이상)
 ```
 pip install -r requirements.txt
 python main.py
 ```
 
-### 2) exe 만들기 (Windows)
+### 3) exe 직접 만들기 (Windows, 개발자용)
 `build.bat` 을 더블클릭하면 `dist\safe_rush\safe_rush.exe` 가 만들어집니다.
 (`dist\safe_rush` 폴더 전체를 zip 으로 묶어 배포하세요.)
 
