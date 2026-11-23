@@ -185,7 +185,7 @@ def draw_time_bar(surf, ratio, color, track=(0, 0, 0)):
     half = full / 2
     draw_round_alpha(surf, track, 60, (margin, y, full, h), h // 2)
     ratio = clamp(ratio, 0.0, 1.0)
-    w = max(0, int(half * ratio))
+    w = int(full * ratio)                          # 양쪽 끝이 중앙을 향해 줄어들어요 (바는 항상 중앙에 있어요)
     if w > 0:
-        draw_round(surf, color, (margin, y, w, h), h // 2)
-        draw_round(surf, color, (margin + full - w, y, w, h), h // 2)
+        w = max(w, h)                              # 둥근 끝이 찌그러지지 않게 최소 폭을 둬요
+        draw_round(surf, color, (margin + (full - w) // 2, y, w, h), h // 2)
