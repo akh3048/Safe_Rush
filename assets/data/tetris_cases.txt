@@ -1,0 +1,89 @@
+case 1
+level: 하
+pieces: I L O J
+board:
+....######
+....######
+....######
+....######
+
+case 2
+level: 하
+pieces: T L I
+board:
+###....###
+###...####
+###..#####
+###...####
+
+case 3
+level: 하
+pieces: L J
+board:
+##..######
+##..######
+##..######
+##..######
+
+case 4
+level: 하
+pieces: L T I
+board:
+###....###
+###...####
+###..#####
+###...####
+
+case 5
+level: 중
+pieces: Z I S J
+board:
+####....##
+####...###
+####..####
+####...###
+
+case 6
+level: 중
+pieces: I J O Z T
+board:
+##.....###
+###....###
+####...###
+###....###
+
+case 7
+level: 상
+pieces: L J S T
+board:
+...#######
+...#######
+...#######
+...#######
+
+case 8
+level: 상
+pieces: S T S Z
+board:
+##......##
+##.....###
+###...####
+#####..###
+
+case 9
+level: 상
+pieces: L T T S I J
+board:
+###.......
+###......#
+###......#
+###.....##
+
+case 10
+level: 상
+pieces: L Z J O 
+board:
+#..#..####
+#..#######
+#..#######
+#..##..###
